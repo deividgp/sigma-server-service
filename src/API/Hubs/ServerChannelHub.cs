@@ -1,9 +1,14 @@
 namespace API.Hubs;
 
-public class ServerChannelHub(IChannelService channelService, IServerService serverService) : Hub
+public class ServerChannelHub(
+    IChannelService channelService,
+    IServerService serverService,
+    IConfiguration config
+) : Hub
 {
     private readonly IChannelService _channelService = channelService;
     private readonly IServerService _serverService = serverService;
+    private readonly IConfiguration _config = config;
 
     // Server
     public async Task<bool> SendCreateServer(ServerCreateDTO serverCreate)
@@ -38,7 +43,10 @@ public class ServerChannelHub(IChannelService channelService, IServerService ser
     {
         try
         {
-            Server? server = await _serverService.GetServer(sendAddMember.ServerName);
+            Server? server = await _serverService.GetServer(
+                sendAddMember.ServerName,
+                sendAddMember.ServerPassword
+            );
 
             if (server is null)
                 return false;
@@ -74,12 +82,29 @@ public class ServerChannelHub(IChannelService channelService, IServerService ser
     {
         try
         {
+            Server? server = await _serverService.GetServer(serverId);
+
+            if (server is null)
+                return false;
+
             bool result = await _serverService.DeleteServer(serverId);
 
             if (!result)
                 return false;
 
             await Clients.Caller.SendAsync("ReceiveDeleteServer", serverId);
+
+            HttpClient httpClient = new();
+            var response = await httpClient.PatchAsJsonAsync(
+                _config.GetValue<string>("User:Url")! + "RemoveFromServer",
+                new ServerRemoveRequestDTO()
+                {
+                    ServerId = serverId,
+                    UserIds = server.Members.Select(m => m.Id).ToList()
+                }
+            );
+
+            response.EnsureSuccessStatusCode();
 
             return true;
         }
@@ -90,6 +115,42 @@ public class ServerChannelHub(IChannelService channelService, IServerService ser
     }
 
     public async Task SendRemoveMember() { }
+
+    public async Task<bool> SendCreateRole(RoleCreateDTO roleCreate)
+    {
+        try
+        {
+            Role? role = await _serverService.CreateRole(roleCreate);
+
+            if (role is null)
+                return false;
+
+            await Clients.Caller.SendAsync("ReceiveCreateRole", role);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> SendDeleteRole(RoleDeleteDTO roleDelete)
+    {
+        try
+        {
+            bool result = await _serverService.DeleteRole(roleDelete);
+
+            if (!result)
+                return false;
+
+            await Clients.Caller.SendAsync("ReceiveDeleteRole", roleDelete.RoleId);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     // Channel
     public async Task<bool> JoinChannel(string channelId)
