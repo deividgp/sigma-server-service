@@ -68,7 +68,7 @@ public class ChannelService(
         if (channel is null) return null;
 
         return channel.Messages
-            .Where(m => m.Content.Contains(messageGetRequest.Search))
+            .Where(m => m.Content.Contains(messageGetRequest.Search, StringComparison.CurrentCultureIgnoreCase))
             .ToList();
     }
 }
