@@ -5,7 +5,7 @@ public class ChannelController(IChannelService channelService) : ControllerBase
 {
     private readonly IChannelService _channelService = channelService;
 
-    [HttpGet("/api/Channel/Get")]
+    [HttpGet("/api/Channel/Get/{channelId}")]
     public async Task<ActionResult> GetChannel(Guid channelId)
     {
         Channel? channel = await _channelService.GetChannel(channelId);
@@ -16,9 +16,17 @@ public class ChannelController(IChannelService channelService) : ControllerBase
         return Ok(channel);
     }
 
-    [HttpGet("/api/Channel/GetMessages")]
-    public async Task<ActionResult> GetMessages(MessageGetRequestDTO messageGetRequest)
+    [HttpGet("/api/Channel/GetMessages/{channelId}/{search}")]
+    public async Task<ActionResult> GetMessages(Guid channelId, string search)
     {
-        return Ok(await _channelService.GetMessages(messageGetRequest));
+        List<Message>? messages = await _channelService.GetMessages(new MessageGetRequestDTO()
+        {
+            ChannelId = channelId,
+            Search = search
+        });
+
+        if (messages is null) return NotFound();
+
+        return Ok(messages);
     }
 }

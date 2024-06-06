@@ -61,11 +61,11 @@ public class ChannelService(
         return await _channelRepository.GetByIdAsync(channelId);
     }
 
-    public async Task<List<Message>> GetMessages(MessageGetRequestDTO messageGetRequest)
+    public async Task<List<Message>?> GetMessages(MessageGetRequestDTO messageGetRequest)
     {
         Channel? channel = await _channelRepository.GetByIdAsync(messageGetRequest.ChannelId);
 
-        if (channel is null) return [];
+        if (channel is null) return null;
 
         return channel.Messages
             .Where(m => m.Content.Contains(messageGetRequest.Search))

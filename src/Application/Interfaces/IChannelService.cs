@@ -6,5 +6,5 @@ public interface IChannelService
     public Task DeleteChannel(ChannelDeleteDTO channelDelete);
     public Task<Message> AddMessage(MessageCreateDTO messageCreate);
     public Task<Channel?> GetChannel(Guid channelId);
-    public Task<List<Message>> GetMessages(MessageGetRequestDTO messageGetRequest);
+    public Task<List<Message>?> GetMessages(MessageGetRequestDTO messageGetRequest);
 }
