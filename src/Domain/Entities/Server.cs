@@ -3,7 +3,7 @@ namespace Domain.Entities;
 public class Server : Entity<Guid>
 {
     public required string Name { get; set; }
-    public required string Password { get; set; }
+    public string? Password { get; set; }
     public string? Icon { get; set; }
     public ServerSettings ServerSettings { get; set; } = new();
     public List<Member> Members { get; set; } = [];

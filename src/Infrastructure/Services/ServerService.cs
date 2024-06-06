@@ -60,12 +60,18 @@ public class ServerService(IRepository<Server, Guid> serverRepository) : IServer
         return await _serverRepository.GetByIdAsync(serverId);
     }
 
-    public async Task<Server?> GetServer(string serverName, string serverPassword)
+    public async Task<Server?> GetServer(string serverName, string? serverPassword)
     {
         Server? server = await _serverRepository.GetFirstAsync(s => s.Name == serverName);
 
         if (server is null)
             return null;
+
+        if (server.Password is not null && serverPassword is null)
+            return null;
+
+        if (server.Password is null && (serverPassword is not null || serverPassword is null))
+            return server;
 
         if (
             BCrypt.Net.BCrypt.Verify(
@@ -76,6 +82,7 @@ public class ServerService(IRepository<Server, Guid> serverRepository) : IServer
             )
         )
             return server;
+
         return null;
     }
 
