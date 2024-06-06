@@ -15,4 +15,10 @@ public class ChannelController(IChannelService channelService) : ControllerBase
 
         return Ok(channel);
     }
+
+    [HttpGet("/api/Channel/GetMessages")]
+    public async Task<ActionResult> GetMessages(MessageGetRequestDTO messageGetRequest)
+    {
+        return Ok(await _channelService.GetMessages(messageGetRequest));
+    }
 }

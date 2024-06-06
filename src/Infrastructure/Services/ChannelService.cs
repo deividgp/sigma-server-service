@@ -1,3 +1,4 @@
+
 namespace Infrastructure.Services;
 
 public class ChannelService(
@@ -58,5 +59,16 @@ public class ChannelService(
     public async Task<Channel?> GetChannel(Guid channelId)
     {
         return await _channelRepository.GetByIdAsync(channelId);
+    }
+
+    public async Task<List<Message>> GetMessages(MessageGetRequestDTO messageGetRequest)
+    {
+        Channel? channel = await _channelRepository.GetByIdAsync(messageGetRequest.ChannelId);
+
+        if (channel is null) return [];
+
+        return channel.Messages
+            .Where(m => m.Content.Contains(messageGetRequest.Search))
+            .ToList();
     }
 }
