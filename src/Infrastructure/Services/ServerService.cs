@@ -15,7 +15,10 @@ public class ServerService(IRepository<Server, Guid> serverRepository) : IServer
             {
                 Id = Guid.NewGuid(),
                 Name = serverCreate.ServerName,
-                Password = BCrypt.Net.BCrypt.HashPassword(serverCreate.ServerPassword),
+                Password =
+                    serverCreate.ServerPassword == null
+                        ? null
+                        : BCrypt.Net.BCrypt.HashPassword(serverCreate.ServerPassword),
                 OwnerId = serverCreate.OwnerId,
                 Members = [member]
             };
@@ -70,7 +73,7 @@ public class ServerService(IRepository<Server, Guid> serverRepository) : IServer
         if (server.Password is not null && serverPassword is null)
             return null;
 
-        if (server.Password is null && (serverPassword is not null || serverPassword is null))
+        if (server.Password is null)
             return server;
 
         if (
