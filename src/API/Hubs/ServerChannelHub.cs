@@ -92,7 +92,7 @@ public class ServerChannelHub(
             if (!result)
                 return false;
 
-            await Clients.Caller.SendAsync("ReceiveDeleteServer", serverId);
+            await Clients.Caller.SendAsync("ReceiveServerDelete", serverId);
 
             HttpClient httpClient = new();
             var response = await httpClient.PatchAsJsonAsync(
@@ -114,7 +114,36 @@ public class ServerChannelHub(
         }
     }
 
-    public async Task SendRemoveMember() { }
+    public async Task<bool> SendRemoveMember(MemberRemoveDTO memberRemove)
+    {
+        try
+        {
+            await _serverService.RemoveMember(memberRemove);
+
+            await Clients
+                .User(memberRemove.MemberId.ToString())
+                .SendAsync("ReceiveServerDelete", memberRemove.ServerId);
+            await Clients.Caller.SendAsync("ReceiveMemberRemove", memberRemove);
+
+            HttpClient httpClient = new();
+            var response = await httpClient.PatchAsJsonAsync(
+                _config.GetValue<string>("User:Url")! + "RemoveFromServer",
+                new ServerRemoveRequestDTO()
+                {
+                    ServerId = memberRemove.ServerId,
+                    UserIds = [memberRemove.MemberId]
+                }
+            );
+
+            response.EnsureSuccessStatusCode();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     public async Task<bool> SendCreateRole(RoleCreateDTO roleCreate)
     {
