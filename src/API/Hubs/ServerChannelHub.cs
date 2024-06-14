@@ -22,7 +22,7 @@ public class ServerChannelHub(
 
             await Clients.Caller.SendAsync(
                 "ReceiveCreateServer",
-                new PartialServer()
+                new ServerDTO()
                 {
                     UserId = serverCreate.OwnerId,
                     Id = server.Id,
@@ -61,7 +61,7 @@ public class ServerChannelHub(
             );
             await Clients.Caller.SendAsync(
                 "ReceiveAddMember",
-                new PartialServer()
+                new ServerDTO()
                 {
                     UserId = sendAddMember.UserId,
                     Id = server.Id,
